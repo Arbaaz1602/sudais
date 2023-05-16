@@ -1,0 +1,97 @@
+spring:
+  application:
+    name: ${IAM_SERVICE_APPLICATION_NAME:AlSudaisIAMService}
+  main:
+    allow-circular-references: true
+  profiles.active: local
+  webflux:
+    base-path: ${IAM_SERVICE_BASE_PATH:/iam-management}
+
+  r2dbc:
+    url: ${IAM_SERVICE_DATABASE_URL:r2dbc:postgresql://sudais-master-mvp-dev.cwgicxdi768g.me-central-1.rds.amazonaws.com/sudais-admin}
+    username: ${IAM_SERVICE_DATABASE_USERNAME:sudais_admin}
+    password: ${IAM_SERVICE_DATABASE_PASSWORD:alSuDa!s#2023}
+    pool:
+      enabled: ${IAM_SERVICE_DATABASE_POOL_ENABLE:true}
+      initial-size: ${IAM_SERVICE_DATABASE_INITIAL_POOL_SIZE:5}
+      max-size: ${IAM_SERVICE_DATABASE_MAX_POOL_SIZE:5}
+      max-idle-time: ${IAM_SERVICE_DATABASE_POOL_MAX_IDEAL_TIME:90m}
+      validation-query: SELECT 1
+  jpa:
+    hibernate:
+      ddl-auto: none
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+    show-sql: true
+  liquibase:
+    change-log: classpath:db/changelog/changelog.sql
+    url: ${IAM_SERVICE_DATABASE_LIQUIBASE_URL:jdbc:postgresql://sudais-master-mvp-dev.cwgicxdi768g.me-central-1.rds.amazonaws.com/sudais-admin}
+    user: ${IAM_SERVICE_DATABASE_USERNAME:sudais_admin}
+    password: ${IAM_SERVICE_DATABASE_PASSWORD:alSuDa!s#2023}
+    database-change-log-table: databasechangelog_alsudais_iam_service
+    database-change-log-lock-table: databasechangeloglock_alsudais_iam_service
+
+server:
+  port: ${IAM_SERVICE_PORT:8081}
+  error.whitelabel.enabled: false
+  http2.enabled: ${HTTP2_ENABLE:true}
+
+grpc:
+  server:
+    port: ${IAM_SERVICE_GRPC_PORT:7071}
+    reflection-service-enabled: true
+
+management:
+  health:
+    defaults:
+      enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+resilience4j:
+  timelimiter:
+    configs:
+      default:
+        cancel-running-future: false
+        timeout-duration: 60s
+      hystrix:
+        cancel-running-future: false
+        timeout-duration: 60s
+    instances:
+      Hystrix:
+        baseConfig: hystrix
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-size: 100
+        permitted-number-of-calls-in-half-open-state: 5
+        wait-duration-in-open-state: 10000
+        failure-rate-threshold: 60
+        event-consumer-buffer-size: 10
+        register-health-indicator: true
+      hystrix:
+        sliding-window-size: 100
+        permitted-number-of-calls-in-half-open-state: 5
+        wait-duration-in-open-state: 10000
+        failure-rate-threshold: 60
+        event-consumer-buffer-size: 10
+        register-health-indicator: true
+    instances:
+      Hystrix:
+        baseConfig: hystrix
+
+iam-service-version: v1.0
+notification-service-version: v1.0
+
+openapi3:
+  group: IAM
+  package.to.scan: com.alsudais
+  title: IAM Service
+  description: IAM Service
+  version: Version 1.0.0
+  contact:
+    name: Al Sudais
+    url: https://alsudais.com
+    email: admin@alsudais.com

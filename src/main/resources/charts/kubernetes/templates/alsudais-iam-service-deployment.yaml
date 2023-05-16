@@ -1,0 +1,77 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    dapr.io/enabled: "true"
+    dapr.io/app-protocol: http
+    dapr.io/app-id: AlSudaisIAMService
+    dapr.io/app-port: "9091"
+  labels:
+    app: alsudais-iam-service
+    provider: alsudais
+    version: 1.0.0
+    group: com.alsudais
+  name: alsudais-iam-service
+  namespace: alsudais
+spec:
+  replicas: 1
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels:
+      app: alsudais-iam-service
+      provider: alsudais
+      group: com.alsudais
+  template:
+    metadata:
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-protocol: http
+        dapr.io/app-id: AlSudaisIAMService
+        dapr.io/app-port: "9091"
+      labels:
+        app: alsudais-iam-service
+        provider: alsudais
+        version: 1.0.0
+        group: com.alsudais
+      name: alsudaisiamservice
+      namespace: alsudais
+    spec:
+      containers:
+      - env:
+        - name: KUBERNETES_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: HOSTNAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        image: 263534232744.dkr.ecr.me-south-1.amazonaws.com/alsudais_iam_service:dev_1.0.0
+        imagePullPolicy: Always
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /actuator/health
+            port: 8081
+            scheme: HTTP
+          initialDelaySeconds: 180
+          successThreshold: 1
+        name: alsudais-iam-service
+        ports:
+        - containerPort: 8081
+          name: sunproxyadmin
+          protocol: TCP
+        - containerPort: 9091
+          name: xmltec-xmlmail
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /actuator/health
+            port: 8081
+            scheme: HTTP
+          initialDelaySeconds: 10
+          successThreshold: 1
+        securityContext:
+          privileged: false

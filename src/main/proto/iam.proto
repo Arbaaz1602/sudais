@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package com.grpc.iam;
+
+option java_multiple_files = true;
+option java_outer_classname = "IAM";
+
+service IAMGrpcService {
+  rpc signIn (SignInRequest) returns (SignInResponse);
+}
+
+message SignInRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message SignInResponse {
+  string email = 1;
+  string token = 2;
+}

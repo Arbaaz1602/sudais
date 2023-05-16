@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration>
+<configuration>
+	<include resource="org/springframework/boot/logging/logback/defaults.xml" />
+	<include resource="org/springframework/boot/logging/logback/console-appender.xml" />
+	<property resource="application.yaml" />
+	<springProperty scope="context" name="APPLICATION_NAME" source="spring.application.name"/>
+	<springProperty scope="context" name="APPLICATION_PORT" source="server.port"/>
+	<property name="DIRECTORY-NAME" value="${DirectoryName:-/app/alsudais}" />
+	<property name="LOG-FILE-NAME" value="${LogFileName:-${APPLICATION_NAME:-ALSUDAIS}.log}" />
+	<property name="ROOT-LOG-LEVEL" value="${RootLogLevel:-info}" />
+	<property name="SPRING-LOG-LEVEL" value="${SpringLogLevel:-info}" />
+	<property name="ALSUDAIS-LOG-LEVEL" value="${ALSUDAISLogLevel:-info}" />
+	<property name="NET-DEVH-LOG-LEVEL" value="${SpringLogLevel:-info}" />
+	<property name="LOG-PATTERN" value="${FileLogPattern:-%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n}" />
+	<property name="BUGSNAG_KEY" value="${BugsnagKey:-f3c024cfef8e61283a7ce3d9c2ad102c}" />
+	<property name="LOGSTASH_DESTINATION" value="${LogstashDestination:-127.0.0.1:5000}" />
+	<property name="SENTRY_DSN" value="${SentryDsn:-https://e0d9c437ead1424e89d22621a4c8c7b2@o4505147114323968.ingest.sentry.io/4505152679378944}" />
+
+	<appender name="ROLLING-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<pattern>${LOG-PATTERN}</pattern>
+		</encoder>
+		<file>${DIRECTORY-NAME}/${LOG-FILE-NAME}</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+			<fileNamePattern>${DIRECTORY-NAME}/${LOG-FILE-NAME}.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+			<maxFileSize>10MB</maxFileSize>
+			<totalSizeCap>20GB</totalSizeCap>
+			<maxHistory>60</maxHistory>
+		</rollingPolicy>
+	</appender>
+
+	<appender name="BUGSNAG" class="com.bugsnag.BugsnagAppender">
+		<apiKey>${BUGSNAG_KEY}</apiKey>
+	</appender>
+
+	<appender name="SENTRY" class="io.sentry.logback.SentryAppender">
+		<options>
+			<dsn>${SENTRY_DSN}</dsn>
+		</options>
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+			<level>ERROR</level>
+		</filter>
+		<minimumEventLevel>WARN</minimumEventLevel>
+		<minimumBreadcrumbLevel>DEBUG</minimumBreadcrumbLevel>
+		<encoder>
+			<pattern>${LOG-PATTERN}</pattern>
+		</encoder>
+	</appender>
+
+	<appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+		<param name="Encoding" value="UTF-8"/>
+		<destination>${LOGSTASH_DESTINATION}</destination>
+		<encoder class="net.logstash.logback.encoder.LogstashEncoder">
+			<customFields>{"app_name" : "${APPLICATION_NAME}", "app_port" : "${APPLICATION_PORT}"}</customFields>
+		</encoder>
+	</appender>
+
+	<springProfile name="root">
+		<root level="${ROOT-LOG-LEVEL}" additivity="false">
+			<appender-ref ref="CONSOLE" />
+<!--			<appender-ref ref="ROLLING-FILE" />-->
+			<appender-ref ref="BUGSNAG"/>
+			<appender-ref ref="LOGSTASH"/>
+			<appender-ref ref="SENTRY"/>
+		</root>
+	</springProfile>
+
+	<springProfile name="local">
+		<logger name="com.alsudais" level="${ALSUDAIS-LOG-LEVEL}" additivity="false">
+			<appender-ref ref="CONSOLE" />
+			<appender-ref ref="SENTRY"/>
+		</logger>
+		<logger name="org.springframework" level="${SPRING-LOG-LEVEL}" additivity="false">
+			<appender-ref ref="CONSOLE" />
+			<appender-ref ref="SENTRY"/>
+		</logger>
+		<logger name="net.devh" level="${NET-DEVH-LOG-LEVEL}" additivity="false">
+			<appender-ref ref="CONSOLE" />
+			<appender-ref ref="SENTRY"/>
+		</logger>
+	</springProfile>
+
+	<springProfile name="dev">
+		<logger name="com.alsudais" level="${ALSUDAIS-LOG-LEVEL}" additivity="false">
+			<appender-ref ref="CONSOLE" />
+			<!--			<appender-ref ref="ROLLING-FILE" />-->
+			<appender-ref ref="BUGSNAG"/>
+			<appender-ref ref="LOGSTASH"/>
+			<appender-ref ref="SENTRY"/>
+		</logger>
+		<logger name="org.springframework" level="${SPRING-LOG-LEVEL}" additivity="false">
+			<appender-ref ref="CONSOLE" />
+			<!--			<appender-ref ref="ROLLING-FILE" />-->
+			<appender-ref ref="BUGSNAG"/>
+			<appender-ref ref="LOGSTASH"/>
+			<appender-ref ref="SENTRY"/>
+		</logger>
+		<logger name="net.devh" level="${NET-DEVH-LOG-LEVEL}" additivity="false">
+			<appender-ref ref="CONSOLE" />
+			<!--			<appender-ref ref="ROLLING-FILE" />-->
+			<appender-ref ref="BUGSNAG"/>
+			<appender-ref ref="LOGSTASH"/>
+			<appender-ref ref="SENTRY"/>
+		</logger>
+	</springProfile>
+
+	<springProfile name="prod">
+		<logger name="com.alsudais" level="${ALSUDAIS-LOG-LEVEL}" additivity="false">
+			<appender-ref ref="CONSOLE" />
+			<!--			<appender-ref ref="ROLLING-FILE" />-->
+			<appender-ref ref="BUGSNAG"/>
+			<appender-ref ref="LOGSTASH"/>
+			<appender-ref ref="SENTRY"/>
+		</logger>
+		<logger name="org.springframework" level="${SPRING-LOG-LEVEL}" additivity="false">
+			<appender-ref ref="CONSOLE" />
+			<!--			<appender-ref ref="ROLLING-FILE" />-->
+			<appender-ref ref="BUGSNAG"/>
+			<appender-ref ref="LOGSTASH"/>
+			<appender-ref ref="SENTRY"/>
+		</logger>
+		<logger name="net.devh" level="${NET-DEVH-LOG-LEVEL}" additivity="false">
+			<appender-ref ref="CONSOLE" />
+			<!--			<appender-ref ref="ROLLING-FILE" />-->
+			<appender-ref ref="BUGSNAG"/>
+			<appender-ref ref="LOGSTASH"/>
+			<appender-ref ref="SENTRY"/>
+		</logger>
+	</springProfile>
+
+	<springProfile name="test">
+		<logger name="com.alsudais" level="${ALSUDAIS-LOG-LEVEL}" additivity="false">
+			<appender-ref ref="CONSOLE" />
+			<!--			<appender-ref ref="ROLLING-FILE" />-->
+			<appender-ref ref="BUGSNAG"/>
+			<appender-ref ref="LOGSTASH"/>
+			<appender-ref ref="SENTRY"/>
+		</logger>
+		<logger name="org.springframework" level="${SPRING-LOG-LEVEL}" additivity="false">
+			<appender-ref ref="CONSOLE" />
+			<!--			<appender-ref ref="ROLLING-FILE" />-->
+			<appender-ref ref="BUGSNAG"/>
+			<appender-ref ref="LOGSTASH"/>
+			<appender-ref ref="SENTRY"/>
+		</logger>
+		<logger name="net.devh" level="${NET-DEVH-LOG-LEVEL}" additivity="false">
+			<appender-ref ref="CONSOLE" />
+			<!--			<appender-ref ref="ROLLING-FILE" />-->
+			<appender-ref ref="BUGSNAG"/>
+			<appender-ref ref="LOGSTASH"/>
+			<appender-ref ref="SENTRY"/>
+		</logger>
+	</springProfile>
+</configuration>
